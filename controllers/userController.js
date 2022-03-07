@@ -84,7 +84,7 @@ module.exports = {
       .then((user) =>
         !user
           ? res.status(404).json({ message: 'No such user exists' })
-          : res.status(404).json({ message: 'Deleted!' })
+          : res.status(200).json({ message: 'Deleted!' })
       )
       .catch((err) => {
         console.log(err);
