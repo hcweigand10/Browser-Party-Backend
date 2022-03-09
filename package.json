@@ -1,0 +1,29 @@
+{
+  "name": "BrowserParty",
+  "version": "1.0.1",
+  "description": "Mongoose back-end project - Develop",
+  "main": "server.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "concurrently \"npm run database\" \"npm run socket\"",
+    "dev": "nodemon server",
+    "socket": "node socketServer.js",
+    "database": "node server.js",
+    "heroku-postbuild": "node utils/seed.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "dotenv": "^16.0.0",
+    "mongoose": "^6.2.4",
+    "mysql2": "^2.3.3",
+    "sequelize": "^6.17.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "socket.io": "^4.4.1",
+    "uuid": "^8.3.2",
+    "concurrently": "^7.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.9"
+  }
+}
