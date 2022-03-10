@@ -80,6 +80,10 @@ const newPlayer = (socket, room) => {
   io.emit(`new-player${room.name}`, players)
 }
 
+const incrementRound = (socket, room) => {
+    console.log(`increment round in room ${room}`)
+    io.in(room).emit("increment-round")
+}
 
 
 io.on('connection', socket => {
@@ -88,7 +92,6 @@ io.on('connection', socket => {
 
   socket.on('join-room', (roomName, username) => {
     socket.username = username
-    console.log(socket)
     console.log(`attempting to join room ${roomName}`)
     const room = rooms[roomName];
     joinRoom(socket, room);
@@ -98,6 +101,7 @@ io.on('connection', socket => {
   
   socket.on('create-room', (roomName, username) => {
     socket.username = username
+    socket.isHost = roomName
     const room = {
       // id: uuidv4(), // generate a unique id for the new room, that way we don't need to deal with duplicates.
       name: roomName,
@@ -106,8 +110,8 @@ io.on('connection', socket => {
     rooms[roomName] = room;
     // have the socket join the room they've just created.
     joinRoom(socket, room);
-    console.log(room)
-    newPlayer(socket, room)
+    console.log(room);
+    newPlayer(socket, room);
   });
 
   socket.on('leave-room', (room, username) => {
@@ -118,6 +122,10 @@ io.on('connection', socket => {
   socket.on('disconnect', () => {
     console.log('user disconnected');
     leaveRooms(socket);
+  });
+
+  socket.on('increment-round', (room) => {
+    incrementRound(socket, room)
   });
 
   socket.on('getRoomNames', (callback) => {
