@@ -35,7 +35,7 @@ const joinRoom = (socket, room) => {
 
 const leaveRooms = (socket) => {
   const roomsToDelete = [];
-  const players = [];
+//   const players = [];
   let roomName = "";
   for (const id in rooms) {
     const room = rooms[id];
@@ -45,15 +45,15 @@ const leaveRooms = (socket) => {
       roomName = room.name
       // remove the socket from the room object
       room.sockets = room.sockets.filter((item) => item !== socket);
-      room.sockets.forEach(element => {
-        const player = {
-          id: element.id,
-          roomName: element.roomId,
-          username: element.username,
-          score: element.score
-        }
-        players.push(player)
-      });
+    //   room.sockets.forEach(element => {
+    //     const player = {
+    //       id: element.id,
+    //       roomName: element.roomId,
+    //       username: element.username,
+    //       score: element.score
+    //     }
+    //     players.push(player)
+    //   });
     }
     // Prepare to delete any rooms that are now empty
     if (room.sockets.length == 0) {
@@ -64,8 +64,23 @@ const leaveRooms = (socket) => {
   for (const room of roomsToDelete) {
     delete rooms[room.id];
   }
-  io.emit(`player-left${roomName}`, players)
+//   io.emit(`player-left${roomName}`, players)
 };
+
+const updatePlayers = (socket, room) => {
+  const players = []
+  console.log(room)
+  room.sockets.forEach(element => {
+    const player = {
+      id: element.id,
+      roomName: element.roomId,
+      username: element.username,
+      score: element.score
+    }
+    players.push(player)
+  });
+  io.emit(`update-players${room.name}`, players)
+}
 
 const newPlayer = (socket, room) => {
   console.log(`newplayer in room: ${room.name}`)
@@ -82,27 +97,36 @@ const newPlayer = (socket, room) => {
   io.emit(`new-player${room.name}`, players)
 }
 
-const incrementRound = (socket, room) => {
-    console.log(`increment round in room ${room}`)
-    io.in(room).emit("increment-round")
+const incrementRound = (socket, roomName) => {
+    console.log(`increment round in room ${roomName}`)
+    io.in(roomName).emit("increment-round")
 }
 
 const showScoreboard = (socket, room) => {
     io.emit(`scoreboard${room}`, true)
     setTimeout(() => {
         io.emit(`scoreboard${room}`, false)
-    }, 7000);
+    }, 5000);
 }
 
 const wait = (timeToDelay) => new Promise((resolve) => setTimeout(resolve, timeToDelay));
 
 const runGame = async (socket, room) => {
-    showScoreboard(socket, room);
+    showScoreboard(socket, room.name);
     await wait(5000);
-    incrementRound(socket, room);
-    io.emit(`start-whack${room}`)
+    incrementRound(socket, room.name);
+    io.emit(`start-whack${room.name}`)
     await wait(35000);
-    showScoreboard(socket, room)
+    console.log(room)
+    updatePlayers(socket, room);
+    showScoreboard(socket, room.name);
+    await wait(5000);
+    incrementRound(socket, room.name);
+    await wait(3000);
+    io.emit(`start-memory${room.name}`)
+    await wait(35000);
+    updatePlayers(socket, room);
+    showScoreboard(socket, room.name);
 }
 
 
@@ -117,7 +141,7 @@ io.on('connection', socket => {
     const room = rooms[roomName];
     joinRoom(socket, room);
     console.log(room)
-    newPlayer(socket, room)
+    updatePlayers(socket, room)
   });
   
   socket.on('create-room', (roomName, username) => {
@@ -133,11 +157,13 @@ io.on('connection', socket => {
     // have the socket join the room they've just created.
     joinRoom(socket, room);
     console.log(room);
-    newPlayer(socket, room);
+    updatePlayers(socket, room);
   });
 
-  socket.on('leave-room', (room, username) => {
-    leaveRooms(socket, room);
+  socket.on('leave-room', (roomName, username) => {
+    const room = rooms[roomName]
+    leaveRooms(socket, roomName);
+    updatePlayers(socket, room)
     console.log(`${username} left room ${room}`)
   });
 
@@ -146,17 +172,17 @@ io.on('connection', socket => {
     leaveRooms(socket);
   });
 
-  socket.on('increment-round', (room) => {
-    incrementRound(socket, room)
+  socket.on('increment-round', (roomName) => {
+    incrementRound(socket, roomName)
   });
 
-  socket.on('start-game', (room) => {
+  socket.on('start-game', (roomName) => {
+    const room = rooms[roomName]
     runGame(socket, room)
   });
 
   socket.on("send-score", (roundScore) => {
-    console.log(roundScore)
-    socket.score += roundScore;
+    socket.score = (socket.score + roundScore);
   })
 
   socket.on('getRoomNames', (callback) => {
