@@ -49,7 +49,8 @@ const leaveRooms = (socket) => {
         const player = {
           id: element.id,
           roomName: element.roomId,
-          username: element.username
+          username: element.username,
+          score: element.score
         }
         players.push(player)
       });
@@ -73,7 +74,8 @@ const newPlayer = (socket, room) => {
     const player = {
       id: element.id,
       roomName: element.roomId,
-      username: element.username
+      username: element.username,
+      score: element.score
     }
     players.push(player)
   });
@@ -85,13 +87,32 @@ const incrementRound = (socket, room) => {
     io.in(room).emit("increment-round")
 }
 
+const showScoreboard = (socket, room) => {
+    io.emit(`scoreboard${room}`, true)
+    setTimeout(() => {
+        io.emit(`scoreboard${room}`, false)
+    }, 7000);
+}
+
+const wait = (timeToDelay) => new Promise((resolve) => setTimeout(resolve, timeToDelay));
+
+const runGame = async (socket, room) => {
+    showScoreboard(socket, room);
+    await wait(5000);
+    incrementRound(socket, room);
+    io.emit(`start-whack${room}`)
+    await wait(35000);
+    showScoreboard(socket, room)
+}
+
 
 io.on('connection', socket => {
   // when a user connects
   console.log("You are now connected. This socket ID is unique everytime: " + socket.id);
 
   socket.on('join-room', (roomName, username) => {
-    socket.username = username
+    socket.username = username;
+    socket.score = 0
     console.log(`attempting to join room ${roomName}`)
     const room = rooms[roomName];
     joinRoom(socket, room);
@@ -102,10 +123,11 @@ io.on('connection', socket => {
   socket.on('create-room', (roomName, username) => {
     socket.username = username
     socket.isHost = roomName
+    socket.score = 0
     const room = {
       // id: uuidv4(), // generate a unique id for the new room, that way we don't need to deal with duplicates.
       name: roomName,
-      sockets: []
+      sockets: [],
     };
     rooms[roomName] = room;
     // have the socket join the room they've just created.
@@ -127,6 +149,15 @@ io.on('connection', socket => {
   socket.on('increment-round', (room) => {
     incrementRound(socket, room)
   });
+
+  socket.on('start-game', (room) => {
+    runGame(socket, room)
+  });
+
+  socket.on("send-score", (roundScore) => {
+    console.log(roundScore)
+    socket.score += roundScore;
+  })
 
   socket.on('getRoomNames', (callback) => {
     const roomNames = [];
