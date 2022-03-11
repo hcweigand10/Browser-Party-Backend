@@ -2,6 +2,7 @@ const { User } = require('../models');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
 
 
 const getUserFriends = async (userId) => {
@@ -128,30 +129,51 @@ module.exports = {
   },
 
   // login attempt
-  async login(req, res) {
-    try {
-      // we search the DB for a user with the provided username
-      const userData = await User.findOne({username: req.body.username });
-      if (!userData) {
-        // the error message shouldn't specify if the login failed because of wrong username or password
-        res.status(404).json({ message: 'Login failed. Please try again!' });
-        return;
+  login (req, res) {
+    User.findOne({where:{username:req.body.username}}).then(dbUser=>{
+        if(!dbUser){
+            return res.status(403).send("invalid credentials")
+        } 
+        if (bcrypt.compareSync(req.body.password,dbUser.password)) {
+            const token = jwt.sign(
+              {
+                username: dbUser.username,
+                id: dbUser.id
+              },
+              "spenceriscute",
+              {
+                expiresIn: "2h"
+              }
+            );
+            res.json({ 
+                token: token, 
+                user: dbUser
+            });
+          } else {
+            return res.status(403).send("invalid credentials");
+          }
+    }).catch(err=>{
+        console.log(err)
+        res.status(500).json({msg:"an error occured",err})
+    })
+  },
+
+  getTokenData (req, res) {
+    console.log(req.headers);
+    const token = req.headers?.authorization?.split(" ").pop();
+    console.log(token);
+    //  res.json(req.headers);
+    jwt.verify(token, "spenceriscute", (err, data) => {
+      if (err) {
+        console.log(err);
+        res.status(403).json({ msg: "invalid credentials", err });
+      } else {
+        User.findByPk(data.id).then(userData=>{
+          console.log(userDate)  
+          res.json(userData);
+        })
       }
-      // use `bcrypt.compare()` to compare the provided password and the hashed password
-      const validPassword = await bcrypt.compare(
-        req.body.password,
-        userData.password
-      );
-      // if they do not match, return error message
-      if (!validPassword) {
-        res.status(400).json({ message: 'Login failed. Please try again!' });
-        return;
-      }
-      // if they do match, return success message
-      res.status(200).json({ message: 'You are now logged in!' });
-    } catch (err) {
-      res.status(500).json(err);
-    }
+    });
   },
 
 };

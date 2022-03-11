@@ -2,8 +2,10 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 const express = require("express");
 const cors = require("cors");
-const app = express();
+const axios = require("axios");
 const { v4: uuidv4 } = require('uuid');
+
+const app = express();
 
 // if we don't run this we get a CORS error
 // LOCAL
@@ -21,6 +23,29 @@ const io = new Server(theServer, {
     credentials: true
   }
 });
+
+const generateTrivia = async (category, socket, roomName) => {
+    console.log("trivia")
+    let categoryCode = ""
+    if (category === "geography") {
+        categoryCode = 22
+    }
+    let response = await axios({
+        method: 'get',
+        url: `https://opentdb.com/api.php?amount=1&category=22&difficulty=medium&type=multiple`,
+      })
+    console.log(response.data.incorrect_answers)
+    const triviaObj = {
+        question: response.data.question,
+        correct_answer: response.data.correct_answer,
+        incorrect_answers: [response.data.incorrect_answers[0], response.data.incorrect_answers[1], response.data.incorrect_answers[3]],
+        category: response.data.category,
+        difficulty: response.data.difficulty
+    }
+    
+    console.log(triviaObj)
+    io.emit(`trivia${roomName}`)
+}
 
 let rooms = {}
 
@@ -112,39 +137,48 @@ const showScoreboard = (socket, room) => {
 const wait = (timeToDelay) => new Promise((resolve) => setTimeout(resolve, timeToDelay));
 
 const runGame = async (socket, room) => {
+    // pregame scoreboard
     showScoreboard(socket, room.name);
     await wait(5000);
+    // start round 1
     incrementRound(socket, room.name);
     io.emit(`start-whack${room.name}`)
     await wait(35000);
-    console.log(room)
+    // end round 1, update scores and show scoreboard
     updatePlayers(socket, room);
     showScoreboard(socket, room.name);
     await wait(5000);
+    // start round 2
     incrementRound(socket, room.name);
     await wait(3000);
     io.emit(`start-memory${room.name}`)
     await wait(35000);
+    // end round 2, update scores and show scoreboard
     updatePlayers(socket, room);
     showScoreboard(socket, room.name);
+    await wait(5000)
+    // start round 3
+    generateTrivia(geography, socket, room.name);
+    incrementRound(socket, room.name);
 }
 
 
 io.on('connection', socket => {
-  // when a user connects
-  console.log("You are now connected. This socket ID is unique everytime: " + socket.id);
-
-  socket.on('join-room', (roomName, username) => {
-    socket.username = username;
-    socket.score = 0
-    console.log(`attempting to join room ${roomName}`)
+    // when a user connects
+    console.log("You are now connected. This socket ID is unique everytime: " + socket.id);
+    
+    socket.on('join-room', (roomName, username) => {
+        socket.username = username;
+        socket.score = 0
+        console.log(`attempting to join room ${roomName}`)
     const room = rooms[roomName];
     joinRoom(socket, room);
     console.log(room)
     updatePlayers(socket, room)
-  });
-  
-  socket.on('create-room', (roomName, username) => {
+});
+
+socket.on('create-room', (roomName, username) => {
+    generateTrivia("geography", socket, roomName);
     socket.username = username
     socket.isHost = roomName
     socket.score = 0
