@@ -34,17 +34,18 @@ const generateTrivia = async (category, socket, roomName) => {
         method: 'get',
         url: `https://opentdb.com/api.php?amount=1&category=22&difficulty=medium&type=multiple`,
       })
-    console.log(response.data.incorrect_answers)
+    const results = response.data.results[0];
+    console.log(results)
     const triviaObj = {
-        question: response.data.question,
-        correct_answer: response.data.correct_answer,
-        incorrect_answers: [response.data.incorrect_answers[0], response.data.incorrect_answers[1], response.data.incorrect_answers[3]],
-        category: response.data.category,
-        difficulty: response.data.difficulty
+        question: results.question,
+        correct_answer: results.correct_answer,
+        incorrect_answers: results.incorrect_answers,
+        category: results.category,
+        difficulty: results.difficulty
     }
     
     console.log(triviaObj)
-    io.emit(`trivia${roomName}`)
+    io.emit(`trivia${roomName}`,triviaObj)
 }
 
 let rooms = {}
@@ -94,7 +95,6 @@ const leaveRooms = (socket) => {
 
 const updatePlayers = (socket, room) => {
   const players = []
-  console.log(room)
   room.sockets.forEach(element => {
     const player = {
       id: element.id,
@@ -107,20 +107,20 @@ const updatePlayers = (socket, room) => {
   io.emit(`update-players${room.name}`, players)
 }
 
-const newPlayer = (socket, room) => {
-  console.log(`newplayer in room: ${room.name}`)
-  const players = []
-  room.sockets.forEach(element => {
-    const player = {
-      id: element.id,
-      roomName: element.roomId,
-      username: element.username,
-      score: element.score
-    }
-    players.push(player)
-  });
-  io.emit(`new-player${room.name}`, players)
-}
+// const newPlayer = (socket, room) => {
+//   console.log(`newplayer in room: ${room.name}`)
+//   const players = []
+//   room.sockets.forEach(element => {
+//     const player = {
+//       id: element.id,
+//       roomName: element.roomId,
+//       username: element.username,
+//       score: element.score
+//     }
+//     players.push(player)
+//   });
+//   io.emit(`new-player${room.name}`, players)
+// }
 
 const incrementRound = (socket, roomName) => {
     console.log(`increment round in room ${roomName}`)
@@ -155,11 +155,14 @@ const runGame = async (socket, room) => {
     await wait(35000);
     // end round 2, update scores and show scoreboard
     updatePlayers(socket, room);
-    showScoreboard(socket, room.name);
-    await wait(5000)
+    endGame(socket, room.name)
     // start round 3
-    generateTrivia(geography, socket, room.name);
-    incrementRound(socket, room.name);
+    // generateTrivia(geography, socket, room.name);
+    // incrementRound(socket, room.name);
+}
+
+const endGame = (socket, roomName) => {
+  io.in(roomName).emit(`end-game`)
 }
 
 
@@ -168,17 +171,16 @@ io.on('connection', socket => {
     console.log("You are now connected. This socket ID is unique everytime: " + socket.id);
     
     socket.on('join-room', (roomName, username) => {
-        socket.username = username;
-        socket.score = 0
-        console.log(`attempting to join room ${roomName}`)
-    const room = rooms[roomName];
-    joinRoom(socket, room);
-    console.log(room)
-    updatePlayers(socket, room)
-});
+      socket.username = username;
+      socket.score = 0
+      console.log(`attempting to join room ${roomName}`)
+      const room = rooms[roomName];
+      joinRoom(socket, room);
+      console.log(room)
+      updatePlayers(socket, room)
+    });
 
-socket.on('create-room', (roomName, username) => {
-    generateTrivia("geography", socket, roomName);
+  socket.on('create-room', (roomName, username) => {
     socket.username = username
     socket.isHost = roomName
     socket.score = 0
@@ -202,7 +204,6 @@ socket.on('create-room', (roomName, username) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('user disconnected');
     leaveRooms(socket);
   });
 
@@ -219,33 +220,6 @@ socket.on('create-room', (roomName, username) => {
     socket.score = (socket.score + roundScore);
   })
 
-  socket.on('getRoomNames', (callback) => {
-    const roomNames = [];
-    for (const id in rooms) {
-      const {name} = rooms[id];
-      const room = {name, id};
-      roomNames.push(room);
-    }
-
-    callback({
-      rooms: roomNames
-    })
-  });
-
-  socket.on('get-data', (code, callback) => {
-    console.log("getData")
-    console.log(socket.adapter.rooms)
-    let name = ""
-    for (const room in rooms) {
-      if (room.code === code) {
-        name = room.name
-      }
-    }
-    console.log(name)
-    callback({
-      roomName: name
-    });
-  })
 })
 
 theServer.listen(PORT, function () {

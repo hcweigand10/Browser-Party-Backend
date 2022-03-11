@@ -20,7 +20,8 @@ const getUserFriends = async (userId) => {
 module.exports = {
 
   login (req, res) {
-    User.findOne({where:{username:req.body.username}}).then(dbUser=>{
+    console.log(`login attempt for ${req.body.username}`)
+    User.findOne({username:req.body.username}).then(dbUser=>{
         if(!dbUser){
             return res.status(403).send("invalid credentials")
         } 
@@ -103,6 +104,7 @@ module.exports = {
         password: bcrypt.hashSync(req.body.password, 4),
         friends: []
       });
+      console.log(`newUser: ${newUser}`)
       res.status(200).json(newUser);
     } catch (error) {
       res.status(500).json(error)
@@ -159,16 +161,13 @@ module.exports = {
   },
 
   getTokenData(req, res) {
-    console.log(req.headers);
     const token = req.headers?.authorization?.split(" ").pop();
-    console.log(token);
-    //  res.json(req.headers);
     jwt.verify(token, "spenceriscute", (err, data) => {
       if (err) {
         console.log(err);
         res.status(403).json({ msg: "invalid credentials", err });
       } else {
-        User.findByPk(data.id).then(userData=>{
+        User.findOne({_id:data.id}).then(userData=>{
           console.log(userData)  
           res.json(userData);
         })
