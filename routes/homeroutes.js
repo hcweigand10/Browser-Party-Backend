@@ -6,7 +6,7 @@ const {login, getTokenData} = require('../controllers/userController')
 // /login
 router.route('/login').post(login);
 
-router.route('/gettokendata').post(getTokenData);
+router.route('/gettokendata').post(getTokenData)
 
 // /logout
 // router.route('/').post(logout);
