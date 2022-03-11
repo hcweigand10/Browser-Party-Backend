@@ -18,6 +18,36 @@ const getUserFriends = async (userId) => {
 }
 
 module.exports = {
+
+  login (req, res) {
+    User.findOne({where:{username:req.body.username}}).then(dbUser=>{
+        if(!dbUser){
+            return res.status(403).send("invalid credentials")
+        } 
+        if (bcrypt.compareSync(req.body.password,dbUser.password)) {
+            const token = jwt.sign(
+              {
+                username: dbUser.username,
+                id: dbUser.id
+              },
+              "spenceriscute",
+              //REMEMBER TO REPLACE WITH process.env.JWT_SECRET ^
+              {
+                expiresIn: "2h"
+              }
+            );
+            res.json({ 
+                token: token, 
+                user: dbUser
+            });
+          } else {
+            return res.status(403).send("invalid credentials");
+          }
+    }).catch(err=>{
+        console.log(err)
+        res.status(500).json({msg:"an error occured",err})
+    })
+  },
   // Get all users
   getUsers(req, res) {
     User.find()
@@ -128,37 +158,7 @@ module.exports = {
       .catch((err) => res.status(500).json(err));
   },
 
-  // login attempt
-  login (req, res) {
-    User.findOne({where:{username:req.body.username}}).then(dbUser=>{
-        if(!dbUser){
-            return res.status(403).send("invalid credentials")
-        } 
-        if (bcrypt.compareSync(req.body.password,dbUser.password)) {
-            const token = jwt.sign(
-              {
-                username: dbUser.username,
-                id: dbUser.id
-              },
-              "spenceriscute",
-              {
-                expiresIn: "2h"
-              }
-            );
-            res.json({ 
-                token: token, 
-                user: dbUser
-            });
-          } else {
-            return res.status(403).send("invalid credentials");
-          }
-    }).catch(err=>{
-        console.log(err)
-        res.status(500).json({msg:"an error occured",err})
-    })
-  },
-
-  getTokenData (req, res) {
+  getTokenData(req, res) {
     console.log(req.headers);
     const token = req.headers?.authorization?.split(" ").pop();
     console.log(token);
@@ -169,11 +169,10 @@ module.exports = {
         res.status(403).json({ msg: "invalid credentials", err });
       } else {
         User.findByPk(data.id).then(userData=>{
-          console.log(userDate)  
+          console.log(userData)  
           res.json(userData);
         })
       }
     });
   },
-
 };
