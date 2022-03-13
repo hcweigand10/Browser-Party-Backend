@@ -24,6 +24,8 @@ const io = new Server(theServer, {
   }
 });
 
+let rooms = {}
+
 const generateTrivia = async (category, socket, roomName) => {
     console.log("trivia")
     let categoryCode = ""
@@ -48,7 +50,6 @@ const generateTrivia = async (category, socket, roomName) => {
     io.emit(`trivia${roomName}`,triviaObj)
 }
 
-let rooms = {}
 
 const joinRoom = (socket, room) => {
   room.sockets.push(socket);
@@ -59,31 +60,21 @@ const joinRoom = (socket, room) => {
 };
 
 
-const leaveRooms = (socket) => {
+const leaveRooms = (socket, roomName) => {
   const roomsToDelete = [];
-//   const players = [];
-  let roomName = "";
   for (const id in rooms) {
     const room = rooms[id];
-    // check to see if the socket is in the current room
     if (room.sockets.includes(socket)) {
       socket.leave(id);
       roomName = room.name
       // remove the socket from the room object
       room.sockets = room.sockets.filter((item) => item !== socket);
-    //   room.sockets.forEach(element => {
-    //     const player = {
-    //       id: element.id,
-    //       roomName: element.roomId,
-    //       username: element.username,
-    //       score: element.score
-    //     }
-    //     players.push(player)
-    //   });
     }
     // Prepare to delete any rooms that are now empty
     if (room.sockets.length == 0) {
       roomsToDelete.push(room);
+    } else {
+      updatePlayers(socket, room)
     }
   }
   // Delete all the empty rooms that we found earlier
@@ -92,6 +83,21 @@ const leaveRooms = (socket) => {
   }
 //   io.emit(`player-left${roomName}`, players)
 };
+
+// const leaveRoom = (socket) => {
+//   for (const id in rooms) {
+//     const room = rooms[id];
+//     if (room.sockets.includes(socket)) {
+
+//     }
+//   room.sockets = room.sockets.filter((item) => item !== socket)
+//   if (room.sockets.length > 0) {
+//     updatePlayers(socket, room)
+//   } else {
+//     delete rooms(room.name)
+//   }
+//   console.log(rooms)
+// }
 
 const updatePlayers = (socket, room) => {
   const players = []
@@ -198,8 +204,7 @@ io.on('connection', socket => {
 
   socket.on('leave-room', (roomName, username) => {
     const room = rooms[roomName]
-    leaveRooms(socket, roomName);
-    updatePlayers(socket, room)
+    leaveRooms(socket, room);
     console.log(`${username} left room ${room}`)
   });
 

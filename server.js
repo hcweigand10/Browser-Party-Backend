@@ -9,13 +9,13 @@ const cors = require("cors");
 const PORT = process.env.port || 3001;
 const app = express();
 
-// LOCAL
-app.use(cors());
+// // LOCAL
+// app.use(cors());
 
 // DEPLOYED
-// app.use(cors({
-//   origin:"https://joes-fishies-front.herokuapp.com" // change
-// }))
+app.use(cors({
+  origin:"https://browser-party.herokuapp.com/" // change
+}))
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

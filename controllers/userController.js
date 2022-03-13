@@ -31,10 +31,13 @@ module.exports = {
                 username: dbUser.username,
                 id: dbUser.id
               },
-              "spenceriscute",
-              //REMEMBER TO REPLACE WITH process.env.JWT_SECRET ^
+              // LOCAL:
+              // "spenceriscute",
+
+              // DELPOYED:
+              process.env.JWT_SECRET,
               {
-                expiresIn: "2h"
+                expiresIn: "6h"
               }
             );
             res.json({ 
@@ -165,7 +168,10 @@ module.exports = {
     jwt.verify(token, "spenceriscute", (err, data) => {
       if (err) {
         console.log(err);
-        res.status(403).json({ msg: "invalid credentials", err });
+        const data = {
+          err: "Token has expired"
+        }
+        res.status(403).json(data);
       } else {
         User.findOne({_id:data.id}).then(userData=>{
           console.log(userData)  
@@ -174,4 +180,5 @@ module.exports = {
       }
     });
   },
+
 };
