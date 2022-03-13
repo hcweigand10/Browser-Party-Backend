@@ -8,9 +8,14 @@ const { v4: uuidv4 } = require('uuid');
 const app = express();
 
 // if we don't run this we get a CORS error
+
 // LOCAL
 app.use(cors());
 
+// DEPLOYED
+app.use(cors({
+  origin:"https://browser-party.herokuapp.com/" 
+}))
 
 const PORT = process.env.PORT || 4000;
 const URL = process.env.URL || "http://localhost:3000";
