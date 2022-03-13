@@ -9,7 +9,6 @@
     "dev": "nodemon server",
     "socket": "node socketServer.js",
     "database": "node server.js",
-    "heroku-postbuild": "node utils/seed.js"
   },
   "dependencies": {
     "axios": "^0.26.1",
