@@ -5,9 +5,8 @@
   "main": "server.js",
   "license": "MIT",
   "scripts": {
-    "start": "concurrently \"npm run database\" \"npm run socket\"",
+    "start": "npm run database",
     "dev": "nodemon server",
-    "socket": "node socketServer.js",
     "database": "node server.js"
   },
   "dependencies": {
