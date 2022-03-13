@@ -8,7 +8,7 @@
     "start": "concurrently \"npm run database\" \"npm run socket\"",
     "dev": "nodemon server",
     "socket": "node socketServer.js",
-    "database": "node server.js",
+    "database": "node server.js"
   },
   "dependencies": {
     "axios": "^0.26.1",
