@@ -24,7 +24,8 @@ const URL = process.env.URL || "http://localhost:3000";
 const theServer = createServer();
 const io = new Server(theServer, {
   cors: {
-    origin: URL,
+    // Check local vs deployed
+    origin: "https://browser-party.herokuapp.com",
     credentials: true
   }
 });
