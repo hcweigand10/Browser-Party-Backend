@@ -5,13 +5,13 @@ const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 
 
-const getUserFriends = async (userId) => {
+const getUserFriends = async (username) => {
   const friendsArr = User.aggregate([
     {
       $unwind: '$friends',
     },
     {
-      $match:{_id:ObjectId(userId)}
+      $match:{username:ObjectId(username)}
     },
   ]);
   return friendsArr;
@@ -69,14 +69,14 @@ module.exports = {
   },
   // Get a single user
   getSingleUser(req, res) {
-    User.findOne({ _id: req.params.userId })
+    User.findOne({ username: req.params.username })
       .select('-__v')
       .then(async (user) =>
         !user
-          ? res.status(404).json({ message: 'No user with that ID' })
+          ? res.status(404).json({ message: 'No user with that username' })
           : res.json({
-              user,
-              friends: await getUserFriends(req.params.userId),
+              user
+              // friends: await getUserFriends(req.params.username),
             })
       )
       .catch((err) => {
