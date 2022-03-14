@@ -1,5 +1,5 @@
 {
-  "name": "BrowserParty",
+  "name": "BrowserParty-backend",
   "version": "1.0.1",
   "description": "Mongoose back-end project - Develop",
   "main": "server.js",

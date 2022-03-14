@@ -14,7 +14,7 @@ const app = express();
 
 // DEPLOYED
 app.use(cors({
-  origin:"https://browser-party.herokuapp.com/" // change
+  origin:"https://browser-party.herokuapp.com" // change
 }))
 
 app.use(express.urlencoded({ extended: true }));
