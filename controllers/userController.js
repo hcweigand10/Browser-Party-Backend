@@ -24,7 +24,7 @@ module.exports = {
     console.log(`login attempt for ${req.body.username}`)
     User.findOne({username:req.body.username}).then(dbUser=>{
         if(!dbUser){
-            return res.status(403).send("invalid credentials")
+            return res.status(403).json({err:"invalid credentials"})
         } 
         if (bcrypt.compareSync(req.body.password,dbUser.password)) {
             const token = jwt.sign(
@@ -33,10 +33,10 @@ module.exports = {
                 id: dbUser.id
               },
               // LOCAL:
-              // "spenceriscute",
+              "spenceriscute",
 
               // DELPOYED:
-              process.env.JWT_SECRET,
+              // process.env.JWT_SECRET,
               {
                 expiresIn: "6h"
               }
@@ -46,7 +46,7 @@ module.exports = {
                 user: dbUser
             });
           } else {
-            return res.status(403).send("invalid credentials");
+            res.status(403).json({err: "invalid credentials"});
           }
     }).catch(err=>{
         console.log(err)
@@ -111,6 +111,7 @@ module.exports = {
       console.log(`newUser: ${newUser}`)
       res.status(200).json(newUser);
     } catch (error) {
+      console.log(error)
       res.status(500).json(error)
     }
   },
