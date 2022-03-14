@@ -17,6 +17,7 @@ const getUserFriends = async (userId) => {
   return friendsArr;
 }
 
+
 module.exports = {
 
   login (req, res) {
