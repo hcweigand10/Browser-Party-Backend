@@ -6,6 +6,8 @@ const {
     deleteUser,
     addFriend,
     removeFriend,
+    updateUser,
+    incrementWins
 } = require('../../controllers/userController');
 const mysql = require('mysql2');
 
@@ -13,7 +15,10 @@ const mysql = require('mysql2');
 router.route('/').get(getUsers).post(createUser);
 
 // /api/users/:userId
-router.route('/:username').get(getSingleUser).delete(deleteUser);
+router.route('/:username').get(getSingleUser).delete(deleteUser).put(updateUser);
+
+// /api/users/:userId/win
+router.route('/:username/win').get(incrementWins);
 
 // /api/users/:userId/friends
 // router.route('/:username/friends').post(addFriend);

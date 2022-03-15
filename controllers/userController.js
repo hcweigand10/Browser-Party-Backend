@@ -88,8 +88,22 @@ module.exports = {
   // Update a single user
   updateUser(req, res) {
     User.findOneAndUpdate(
-      { _id: req.params.userId },
+      { username: req.params.username },
       { $set: req.body },
+      { runValidators: true, new: true }
+    )
+      .then((user) =>
+        !user
+          ? res.status(404).json({ message: 'No user with this id!' })
+          : res.json(user)
+      )
+      .catch((err) => res.status(500).json(err));
+  },
+
+  incrementWins(req,res) {
+    User.findOneAndUpdate(
+      { username: req.params.username },
+      { $inc: {wins:1} },
       { runValidators: true, new: true }
     )
       .then((user) =>
