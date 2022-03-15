@@ -70,7 +70,7 @@ module.exports = {
   // Get a single user
   getSingleUser(req, res) {
     User.findOne({ username: req.params.username })
-      .select('-__v')
+      // .select('-__v')
       .then(async (user) =>
         !user
           ? res.status(404).json({ message: 'No user with that username' })
@@ -160,15 +160,15 @@ module.exports = {
     User.findOneAndUpdate(
       { username: req.params.username },
       { $pull: { friends: req.params.friend  } },
-      { runValidators: true, new: true }
+      // { runValidators: true, new: true }
     )
-    .then((user=>{
-      return User.findOneAndUpdate(
-        { username: req.params.friend },
-        { $pull: { friends: req.params.username } },
-        { runValidators: true, new: true }
-      )
-    }))
+    // .then((user=>{
+    //   return User.findOneAndUpdate(
+    //     { username: req.params.friend },
+    //     { $pull: { friends: req.params.username } },
+    //     // { runValidators: true, new: true }
+    //   )
+    // }))
       .then((user) =>
         !user
           ? res
