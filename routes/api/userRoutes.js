@@ -13,12 +13,12 @@ const mysql = require('mysql2');
 router.route('/').get(getUsers).post(createUser);
 
 // /api/users/:userId
-router.route('/:userId').get(getSingleUser).delete(deleteUser);
+router.route('/:username').get(getSingleUser).delete(deleteUser);
 
 // /api/users/:userId/friends
-router.route('/:userId/friends').post(addFriend);
+// router.route('/:username/friends').post(addFriend);
 
 // /api/users/:userId/friends/:friendId
-router.route('/:userId/friends/:friendId').delete(removeFriend);
+router.route('/:username/friends/:friend').post(addFriend).delete(removeFriend);
 
 module.exports = router;
