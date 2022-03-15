@@ -5,13 +5,13 @@ const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 
 
-const getUserFriends = async (userId) => {
+const getUserFriends = async (username) => {
   const friendsArr = User.aggregate([
     {
       $unwind: '$friends',
     },
     {
-      $match:{_id:ObjectId(userId)}
+      $match:{username: username}
     },
   ]);
   return friendsArr;
@@ -69,14 +69,14 @@ module.exports = {
   },
   // Get a single user
   getSingleUser(req, res) {
-    User.findOne({ _id: req.params.userId })
+    User.findOne({ username: req.params.username })
       .select('-__v')
       .then(async (user) =>
         !user
-          ? res.status(404).json({ message: 'No user with that ID' })
+          ? res.status(404).json({ message: 'No user with that username' })
           : res.json({
               user,
-              friends: await getUserFriends(req.params.userId),
+              // friends: await getUserFriends(req.params.username),
             })
       )
       .catch((err) => {
@@ -133,12 +133,19 @@ module.exports = {
   // Add an friend to a user
   addFriend(req, res) {
     console.log('You are adding a friend');
-    console.log(req.body);
+    console.log(req.params);
     User.findOneAndUpdate(
-      { _id: req.params.userId },
-      { $addToSet: { friend: req.body } },
+      { username: req.params.username },
+      { $addToSet: { friends: req.params.friend } },
       { runValidators: true, new: true }
     )
+    .then((user=>{
+      return User.findOneAndUpdate(
+        { username: req.params.friend },
+        { $addToSet: { friends: req.params.username } },
+        { runValidators: true, new: true }
+      )
+    }))
       .then((user) =>
         !user
           ? res
@@ -151,10 +158,17 @@ module.exports = {
   // Remove friend from a user
   removeFriend(req, res) {
     User.findOneAndUpdate(
-      { _id: req.params.userId },
-      { $pull: { friend: { friendId: req.params.friendId } } },
+      { username: req.params.username },
+      { $pull: { friends: req.params.friend  } },
       { runValidators: true, new: true }
     )
+    .then((user=>{
+      return User.findOneAndUpdate(
+        { username: req.params.friend },
+        { $pull: { friends: req.params.username } },
+        { runValidators: true, new: true }
+      )
+    }))
       .then((user) =>
         !user
           ? res
