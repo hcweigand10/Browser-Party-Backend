@@ -33,10 +33,10 @@ module.exports = {
                 id: dbUser.id
               },
               // LOCAL:
-              // "spenceriscute",
+              "spenceriscute",
 
               // DELPOYED:
-              process.env.JWT_SECRET,
+              // process.env.JWT_SECRET,
               {
                 expiresIn: "6h"
               }
