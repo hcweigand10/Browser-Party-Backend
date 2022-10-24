@@ -5,7 +5,7 @@
   "main": "server.js",
   "license": "MIT",
   "scripts": {
-    "start": "npm run database",
+    "start": "node server.js",
     "dev": "nodemon server",
     "database": "node server.js"
   },
