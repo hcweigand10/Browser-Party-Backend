@@ -2,6 +2,7 @@ const { User } = require('../models');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const bcrypt = require('bcrypt');
+require("dotenv")
 const jwt = require("jsonwebtoken");
 
 
@@ -32,11 +33,7 @@ module.exports = {
                 username: dbUser.username,
                 id: dbUser.id
               },
-              // LOCAL:
-              "spenceriscute",
-
-              // DELPOYED:
-              // process.env.JWT_SECRET,
+              process.env.JWT_SECRET || "spenceriscute",
               {
                 expiresIn: "6h"
               }
