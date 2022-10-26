@@ -8,12 +8,12 @@ const PORT = process.env.PORT || 3001;
 const app = express();
 
 // // LOCAL
-app.use(cors());
+// app.use(cors());
 
 // DEPLOYED
-// app.use(cors({
-//   origin:"https://browser-party.herokuapp.com" // change
-// }))
+app.use(cors({
+  origin:"https://browserparty.netlify.app" // change
+}))
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -24,3 +24,4 @@ db.once('open', () => {
     console.log(`API server running on port ${PORT}!`);
   });
 });
+
