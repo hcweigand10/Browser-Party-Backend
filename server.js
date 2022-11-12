@@ -12,7 +12,7 @@ const app = express();
 
 // DEPLOYED
 app.use(cors({
-  origin:"http://localhost:3000" // change
+  origin:"https://browserparty.netlify.app" // change
 }))
 
 app.use(express.urlencoded({ extended: true }));
