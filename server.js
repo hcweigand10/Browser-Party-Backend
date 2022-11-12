@@ -8,12 +8,12 @@ const PORT = process.env.PORT || 3001;
 const app = express();
 
 // // LOCAL
-app.use(cors());
+// app.use(cors());
 
 // DEPLOYED
-// app.use(cors({
-//   origin:"https://browserparty.netlify.app" // change
-// }))
+app.use(cors({
+  origin:"http://localhost:3000" // change
+}))
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
