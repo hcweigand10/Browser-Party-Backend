@@ -117,7 +117,6 @@ module.exports = {
       const newUser = await User.create({
         username: req.body.username,
         password: bcrypt.hashSync(req.body.password, 4),
-        friends: []
       });
       console.log(`newUser: ${newUser}`)
       res.status(200).json(newUser);
